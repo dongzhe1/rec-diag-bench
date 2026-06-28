@@ -1,0 +1,114 @@
+seed: 42
+project_root: .
+data_dir: data
+output_dir: outputs
+
+default_split:
+  min_user_interactions: 5
+  min_item_interactions: 3
+  rating_threshold: 4.0
+  valid_per_user: 1
+  test_per_user: 1
+  long_tail_quantile: 0.20
+  max_test_users: 5000
+  train_ratio: 0.7
+  valid_ratio: 0.1
+  # Cold-start thresholds are derived from the *train* interaction distribution
+  # so the same value means the same relative position across all datasets.
+  #
+  # item_new  (train_count == 0): always enabled; no config needed.
+  # item_cold : bottom item_cold_quantile of items that DID appear in train.
+  # user_cold : bottom user_cold_quantile of all train users.
+  #
+  # 0.05 = bottom 5% of the distribution.  Raise to 0.02 for denser datasets
+  # where you want a tighter "cold" definition.
+  item_cold_quantile: 0.05
+  user_cold_quantile: 0.05
+
+dataset_specific:
+  yelp:
+    min_user_interactions: 10
+    min_item_interactions: 10
+    rating_threshold: 3.5
+    # Yelp is denser — widen cold band slightly to capture genuinely sparse items
+    item_cold_quantile: 0.05
+    user_cold_quantile: 0.05
+  amazon:
+    min_user_interactions: 5
+    min_item_interactions: 5
+    rating_threshold: 3.0
+    item_cold_quantile: 0.05
+    user_cold_quantile: 0.05
+  mind:
+    min_user_interactions: 5
+    min_item_interactions: 3
+    rating_threshold: 0.5
+    # MIND is implicit feedback with very skewed item distribution;
+    # use bottom 2% for a tighter cold definition
+    item_cold_quantile: 0.02
+    user_cold_quantile: 0.05
+
+training:
+  device: auto
+  epochs_bpr: 100
+  epochs_lightgcn: 100
+  batch_size: 16384
+  embedding_dim: 64
+  lr: 0.001
+  weight_decay: 0.000001
+  num_negative_train: 1
+  early_stop_patience: 20
+
+itemknn:
+  topk_sim: 100
+
+lightgcn:
+  n_layers: 2
+
+metrics:
+  k_list: [5, 10, 20, 50]
+
+baselines:
+  run_popularity: true
+  run_itemknn: true
+  run_bpr: true
+  run_lightgcn: true
+  run_tfidf: true
+  run_markov: true
+  run_sasrec: true
+  run_sbert: true
+
+sasrec:
+  n_heads: 2
+  n_layers: 2
+  max_seq_len: 50
+  dropout: 0.2
+
+sbert:
+  model_name: "BAAI/bge-small-en-v1.5"
+  batch_size: 128
+
+graph_aware:
+  base_model_for_graph: lightgcn
+  alpha_semantic: 0.5
+  beta_graph: 0.45
+  gamma_base: 0.30
+  lambda_popularity: 0.10
+  tail_boost: 0.05
+  use_tfidf_as_semantic_proxy: true
+
+rerank:
+  cross_encoder_model_type: cross_encoder
+  cross_encoder_batch_size: 64
+  cross_encoder_num_workers: 0
+  cross_encoder_max_length: 64
+  cross_encoder_compile: false
+  cross_encoder_log_interval: 50
+  cross_encoder_chunk_size: 20000
+  sample_users: 200
+  cross_encoder_model: BAAI/bge-reranker-base
+  # logprob: score by P("Yes") — continuous, tie-free (recommended).
+  # generate: legacy 0-100 integer parsing (heavy ties; logs parse-failure rate).
+  llm_scoring_mode: logprob
+  llm_model_name: Qwen/Qwen3.5-0.8B
+

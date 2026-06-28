@@ -1,0 +1,39 @@
+# Data
+data/
+
+# Outputs
+outputs/
+*.7z
+
+# Models
+model/
+
+# Byte-compiled
+__pycache__/
+*.py[codz]
+*$py.class
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+
+# Environments
+.env
+.venv
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
